@@ -3,6 +3,7 @@ import { z } from "zod";
 import { runClaude, type AssistantEvent } from "@/assistant/claude";
 import { connectMcp, resultText } from "@/assistant/mcp";
 import { plan } from "@/assistant/rules";
+import { rateLimited } from "@/lib/rate-limit";
 
 // The simulated Alexa+ turn. Connects to this app's own MCP endpoint over
 // Streamable HTTP (as any MCP host would), then answers with Claude when a key
@@ -21,6 +22,9 @@ const Body = z.object({
 });
 
 export async function POST(request: Request) {
+  if (rateLimited(request, { limit: 30, windowMs: 10 * 60_000 })) {
+    return Response.json({ error: "Too many questions in a short time. Try again in a few minutes." }, { status: 429 });
+  }
   const parsed = Body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: parsed.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
   const { utterance, device, history } = parsed.data;

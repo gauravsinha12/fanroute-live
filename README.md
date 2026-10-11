@@ -85,13 +85,15 @@ npm run dev                  # http://localhost:3000
 npm run mcp:check            # end-to-end MCP check (v2 client + a spec 2025-11-25 client)
 ```
 
+Interop: the live endpoint is also checked with the official MCP Inspector CLI (`npx @modelcontextprotocol/inspector --cli <url>/api/mcp --transport http --method tools/list`).
+
 `npm run dev` and `npm run build` first run `scripts/vendor-app-sdk.mjs`. It inlines the MCP Apps SDK into each view, so the views run under a host's default sandbox CSP without extra domains.
 
 | Variable | Purpose |
 |---|---|
 | `TICKETMASTER_API_KEY` | Real concert listings. Without it, listings are demo data, flagged in the data and on the card. |
 | `FANROUTE_URL` | The Fanroute deployment that hosts pledge campaigns |
-| `ANTHROPIC_API_KEY` | Optional Claude brain for the simulator |
+| `ANTHROPIC_API_KEY` | Optional Claude brain for the simulator (the public `/api/assistant` is rate-limited per IP) |
 
 ## Honest notes
 
