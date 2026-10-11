@@ -50,6 +50,7 @@ export const concertsHtml = () =>
 .date .d{font-size:26px;font-weight:800;line-height:1}
 .date .w{font-size:11px;color:var(--ink3)}
 .artist{font-size:20px;font-weight:700}
+@media (max-width: 440px){.row{grid-template-columns:60px 1fr;gap:10px;padding:10px}.date .d{font-size:22px}.artist{font-size:17px}h1{font-size:22px}}
 .meta{color:var(--ink2);font-size:14px}
 .why{color:var(--accent2);font-size:13px;margin-top:2px}
 .foot{margin-top:12px;color:var(--ink3);font-size:12px}
@@ -96,6 +97,7 @@ export const pledgeHtml = () =>
 .cities{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
 .cities li{display:flex;justify-content:space-between;font-size:15px;border-bottom:1px solid var(--line);padding:4px 0}
 .ok{color:var(--accent2);font-weight:700}
+@media (max-width: 440px){.grid{grid-template-columns:1fr}.qr{max-width:180px}.big{font-size:34px}h1{font-size:22px}}
 `,
     "",
     `
