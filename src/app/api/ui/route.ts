@@ -19,5 +19,5 @@ export async function GET(request: Request) {
     if (!html) return Response.json({ error: "View not found" }, { status: 404 });
     cache.set(uri, html);
   }
-  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=600" } });
+  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
 }
