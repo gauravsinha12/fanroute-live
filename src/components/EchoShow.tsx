@@ -223,7 +223,7 @@ export function EchoShow() {
 
         {/* The device */}
         <div className="rounded-[34px] bg-gradient-to-b from-[#1c1c22] to-[#0c0c0f] p-3 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/5 sm:p-4">
-          <div className="relative aspect-[16/10] overflow-hidden rounded-[22px] bg-screen">
+          <div className="relative aspect-[4/5] overflow-hidden sm:aspect-[16/10] rounded-[22px] bg-screen">
             {view ? (
               <div className="absolute inset-0 overflow-auto pb-16">
                 <McpAppFrame key={view.id} uri={view.uri} toolInput={view.args} toolResult={view.result} />
