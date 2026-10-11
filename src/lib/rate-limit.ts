@@ -17,3 +17,9 @@ export function rateLimited(request: Request, { limit, windowMs }: { limit: numb
   if (hits.size > 5000) hits.delete(hits.keys().next().value!);
   return false;
 }
+
+// The simulator's own server reaches /api/mcp over HTTP from the host's shared
+// egress address, so its calls carry this key and skip the per-IP limit.
+export const INTERNAL_KEY = process.env.INTERNAL_MCP_KEY ?? process.env.VERCEL_DEPLOYMENT_ID ?? "local-dev";
+export const INTERNAL_HEADER = "x-fanroute-internal";
+export const isInternal = (request: Request) => request.headers.get(INTERNAL_HEADER) === INTERNAL_KEY;

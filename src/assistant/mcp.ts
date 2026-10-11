@@ -1,4 +1,5 @@
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
+import { INTERNAL_HEADER, INTERNAL_KEY } from "@/lib/rate-limit";
 
 // The simulated assistant reaches Fanroute Live exactly like a real host
 // would: as an MCP client over Streamable HTTP to the public /api/mcp URL.
@@ -19,7 +20,7 @@ export interface McpCallResult {
 
 export async function connectMcp(url: URL) {
   const client = new Client({ name: "fanroute-live-echo-show", version: "0.1.0" });
-  await client.connect(new StreamableHTTPClientTransport(url));
+  await client.connect(new StreamableHTTPClientTransport(url, { requestInit: { headers: { [INTERNAL_HEADER]: INTERNAL_KEY } } }));
   const listed = await client.listTools();
   const tools: McpToolInfo[] = listed.tools.map((t) => ({
     name: t.name,

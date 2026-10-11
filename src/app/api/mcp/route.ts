@@ -1,5 +1,5 @@
 import { createMcpHandler } from "@modelcontextprotocol/server";
-import { rateLimited } from "@/lib/rate-limit";
+import { isInternal, rateLimited } from "@/lib/rate-limit";
 import { createServer } from "@/mcp/server";
 
 // The MCP endpoint, over Streamable HTTP. Each request gets a fresh server
@@ -23,7 +23,7 @@ const cors = {
 async function handle(request: Request): Promise<Response> {
   // Generous for any real host or judge; stops a script from draining the
   // upstream quotas (Ticketmaster allows 5,000 calls a day).
-  if (rateLimited(request, { limit: 240, windowMs: 10 * 60_000 })) {
+  if (!isInternal(request) && rateLimited(request, { limit: 240, windowMs: 10 * 60_000 })) {
     return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32000, message: "Rate limit exceeded, try again shortly" } }, { status: 429, headers: cors });
   }
   const res = await handler.fetch(request);
