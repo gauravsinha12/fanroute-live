@@ -27,7 +27,10 @@ export async function POST(request: Request) {
   }
   const parsed = Body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: parsed.error.issues[0]?.message ?? "Invalid request" }, { status: 400 });
-  const { utterance, device, history } = parsed.data;
+  const { utterance, device } = parsed.data;
+  // History round-trips through the browser; drop it if it has grown (or been
+  // padded) past what a voice session needs, rather than paying for it.
+  const history = parsed.data.history && JSON.stringify(parsed.data.history).length <= 120_000 ? parsed.data.history : [];
   const mcpUrl = new URL("/api/mcp", process.env.PUBLIC_BASE_URL ?? request.url);
   const useClaude = Boolean(process.env.ANTHROPIC_API_KEY) && process.env.ASSISTANT_BRAIN !== "rules";
 
