@@ -108,6 +108,10 @@ export function EchoShow() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ utterance: text, device: { city, likes }, history: history.current }),
         });
+        if (res.status === 429) {
+          setReply("That's a lot of questions at once. Give me a minute and ask again.");
+          return;
+        }
         if (!res.ok || !res.body) throw new Error(`assistant ${res.status}`);
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
