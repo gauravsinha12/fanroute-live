@@ -5,6 +5,8 @@
 export interface Device {
   city: string;
   likes: string[];
+  /** The listener's local date (YYYY-MM-DD), so "tonight" means their tonight. */
+  today?: string;
 }
 
 export type Plan =
@@ -26,8 +28,9 @@ const trimName = (s: string) =>
     .replace(/[?.!,]+$/, "")
     .trim();
 
-function dateWindow(u: string, now = new Date()): { from?: string; to?: string; label?: string } {
-  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+function dateWindow(u: string, localToday?: string): { from?: string; to?: string; label?: string } {
+  const now = new Date();
+  const today = localToday ? new Date(`${localToday}T00:00:00Z`) : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   if (/\btonight\b|\btoday\b/i.test(u)) return { from: iso(today), to: iso(today) };
   if (/\bthis weekend\b/i.test(u)) {
     const dow = today.getUTCDay(); // 0 Sun .. 6 Sat
@@ -47,6 +50,9 @@ function cityIn(u: string): string | undefined {
 }
 
 function likesIn(u: string): string[] {
+  // "shows like Arctic Monkeys", "music similar to Mitski"
+  const like = u.match(/\b(?:shows?|concerts?|gigs?|music|bands?|artists?)\s+(?:like|similar to)\s+(.+?)(?:[.?!]|$|\s+(?:in|near|this|next|tonight|on)\b)/i);
+  if (like) return like[1].split(/\s*(?:,|\band\b|&)\s*/i).map(trimName).filter((x) => x.length > 1).slice(0, 3);
   const m = u.match(/\b(?:i (?:love|like|really like|listen to|'m into|am into)|i'm a fan of|fan of|into)\s+(.+?)(?:[.?!]|$|,\s*(?:any|what|who|find)|\s+(?:any|what|who)\b)/i);
   if (!m) return [];
   return m[1]
@@ -55,6 +61,8 @@ function likesIn(u: string): string[] {
     .filter((x) => x.length > 1)
     .slice(0, 3);
 }
+
+const CONCERT_WORDS = /\b(shows?|concerts?|gigs?|playing|live music|tickets?|tonight|weekend|this month|next month|next week)\b/i;
 
 export function plan(utterance: string, device: Device): Plan {
   const u = clean(utterance);
@@ -87,12 +95,13 @@ export function plan(utterance: string, device: Device): Plan {
     u.match(/\b(?:who|what)\s+(?:else\s+)?(?:sounds|is|plays)\s+(?:like|similar to)\s+(.+)/i) ??
     u.match(/\b(?:artists|bands|music|singers)\s+(?:similar to|like)\s+(.+)/i) ??
     u.match(/\bsimilar to\s+(.+)/i);
-  if (m && !/\b(show|concert|gig|playing)\b/i.test(u)) return { kind: "tool", name: "similar_artists", args: { artist: trimName(m[1]), limit: 8 } };
+  // "Music like X this weekend" is a concert question, not a similarity one.
+  if (m && !CONCERT_WORDS.test(u)) return { kind: "tool", name: "similar_artists", args: { artist: trimName(m[1]), limit: 8 } };
 
   // "Any shows I'd like this month? I love Clairo"
-  if (/\b(shows?|concerts?|gigs?|playing|live music|tickets?|go out)\b/i.test(u)) {
+  if (CONCERT_WORDS.test(u) || /\bgo out\b/i.test(u)) {
     const likes = likesIn(u);
-    const w = dateWindow(u);
+    const w = dateWindow(u, device.today);
     return {
       kind: "tool",
       name: "find_concerts",

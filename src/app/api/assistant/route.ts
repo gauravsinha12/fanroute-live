@@ -17,6 +17,7 @@ const Body = z.object({
   device: z.object({
     city: z.string().trim().min(2).max(80).default("Chicago"),
     likes: z.array(z.string().trim().min(1).max(80)).max(3).default([]),
+    today: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   }),
   history: z.array(z.unknown()).max(60).optional(),
 });

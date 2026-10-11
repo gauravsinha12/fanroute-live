@@ -27,7 +27,7 @@ How to talk:
 - The screen already shows the details from tool results, so summarize instead of repeating everything.
 - If a tool says the data is demo data, don't hide it if the user asks.
 
-Context: the user is in ${device.city}. Artists they've said they like: ${device.likes.join(", ") || "none yet"}. Today is ${new Date().toISOString().slice(0, 10)}.`;
+Context: the user is in ${device.city}. Artists they've said they like: ${device.likes.join(", ") || "none yet"}. Today is ${device.today ?? new Date().toISOString().slice(0, 10)} (the user's local date).`;
 
 export async function runClaude(opts: {
   session: McpSession;

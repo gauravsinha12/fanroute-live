@@ -38,6 +38,10 @@ interface Recognition {
 type RecognitionCtor = new () => Recognition;
 
 const noop = () => () => {};
+const localDate = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 const subscribeClock = (onChange: () => void) => {
   const t = setInterval(onChange, 10_000);
   return () => clearInterval(t);
@@ -106,7 +110,7 @@ export function EchoShow() {
         const res = await fetch("/api/assistant", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ utterance: text, device: { city, likes }, history: history.current }),
+          body: JSON.stringify({ utterance: text, device: { city, likes, today: localDate() }, history: history.current }),
         });
         if (res.status === 429) {
           setReply("That's a lot of questions at once. Give me a minute and ask again.");
