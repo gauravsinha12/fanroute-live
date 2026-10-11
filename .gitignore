@@ -42,3 +42,4 @@ next-env.d.ts
 
 # generated from @modelcontextprotocol/ext-apps at build time
 src/mcp/ui/app-sdk.generated.ts
+!.env.example

@@ -7,7 +7,8 @@ import { APP_SDK } from "./app-sdk.generated";
 
 const BASE_CSS = `
 :root{--bg:#101014;--panel:#1a1a21;--line:#2c2c36;--ink:#f4f1ea;--ink2:#b9b4a8;--ink3:#8a8578;--accent:#ff9f43;--accent2:#5ad1c6;--warn:#c9a2ff}
-@media (prefers-color-scheme: light){:root{--bg:#faf8f3;--panel:#ffffff;--line:#e4e0d6;--ink:#17161a;--ink2:#4a4740;--ink3:#7a766c;--accent:#d9730d;--accent2:#0f8a80;--warn:#7a4fd1}}
+@media (prefers-color-scheme: light){:root:not([data-theme=dark]){--bg:#faf8f3;--panel:#ffffff;--line:#e4e0d6;--ink:#17161a;--ink2:#4a4740;--ink3:#7a766c;--accent:#d9730d;--accent2:#0f8a80;--warn:#7a4fd1}}
+:root[data-theme=light]{--bg:#faf8f3;--panel:#ffffff;--line:#e4e0d6;--ink:#17161a;--ink2:#4a4740;--ink3:#7a766c;--accent:#d9730d;--accent2:#0f8a80;--warn:#7a4fd1}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{padding:18px 20px 20px}
 .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin:0 0 4px}
@@ -29,7 +30,10 @@ const root = document.getElementById("root");
 const open = (url) => app.openLink({ url }).catch(() => {});
 ${script}
 app.ontoolresult = (result) => { try { render(result.structuredContent || {}, result._meta || {}); } catch (e) { root.innerHTML = '<p class="empty">Could not show this result.</p>'; } };
-app.connect();
+// Follow the host's theme when it sends one; otherwise the OS preference applies.
+const applyTheme = (ctx) => { if (ctx && ctx.theme) document.documentElement.dataset.theme = ctx.theme; };
+app.onhostcontextchanged = applyTheme;
+app.connect().then(() => applyTheme(app.getHostContext()));
 </script></body></html>`;
 
 export const CONCERTS_URI = "ui://fanroute-live/concerts.html";

@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0d0d10;
+  --panel: #15151a;
+  --screen: #0a0a0d;
+  --line: #2a2a33;
+  --ink: #f2efe8;
+  --ink-2: #b8b3a7;
+  --ink-3: #85806f;
+  --accent: #ff9f43;
+  --listen: #36c9e8;
+  --coral: #ff7a6b;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-screen: var(--screen);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-listen: var(--listen);
+  --color-coral: var(--coral);
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jbmono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* The demo is a device on a dark counter; the page stays dark in both modes. */
+html,
+body {
+  background:
+    radial-gradient(1200px 600px at 30% -10%, rgba(255, 159, 67, 0.08), transparent 60%),
+    radial-gradient(900px 500px at 90% 10%, rgba(54, 201, 232, 0.07), transparent 60%),
+    var(--bg);
+  color: var(--ink);
+  color-scheme: dark;
+}
+
+.listen-bar {
+  background: linear-gradient(90deg, transparent, var(--listen), #8ef0ff, var(--listen), transparent);
+  background-size: 200% 100%;
+  animation: sweep 1.1s linear infinite;
+}
+.think-bar {
+  background: linear-gradient(90deg, var(--listen), #2f6bff, var(--listen));
+  background-size: 200% 100%;
+  animation: sweep 2.2s ease-in-out infinite;
+}
+@keyframes sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .listen-bar,
+  .think-bar {
+    animation: none;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
 }
