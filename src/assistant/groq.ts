@@ -86,7 +86,8 @@ export async function runGroq(opts: {
     const calls = message?.tool_calls ?? [];
     messages.push({ role: "assistant", content: message?.content ?? null, ...(calls.length ? { tool_calls: calls } : {}) });
     if (calls.length === 0) {
-      answer = message?.content?.trim() || "Okay.";
+      // Spoken aloud: plain spaces only (models like narrow no-break spaces).
+      answer = (message?.content ?? "").replace(/[   ]/g, " ").trim() || "Okay.";
       break;
     }
     const results = await Promise.all(
