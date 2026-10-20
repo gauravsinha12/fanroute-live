@@ -1,13 +1,14 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { runClaude, type AssistantEvent } from "@/assistant/claude";
+import { runGroq } from "@/assistant/groq";
 import { connectMcp, resultText } from "@/assistant/mcp";
 import { plan } from "@/assistant/rules";
 import { rateLimited } from "@/lib/rate-limit";
 
 // The simulated Alexa+ turn. Connects to this app's own MCP endpoint over
-// Streamable HTTP (as any MCP host would), then answers with Claude when a key
-// is configured, or with the deterministic intent router otherwise. Streams
+// Streamable HTTP (as any MCP host would), then answers with Claude or a Groq
+// model when a key is configured, or with the deterministic intent router. Streams
 // the turn as server-sent events so the screen can show each tool call live.
 
 export const maxDuration = 60;
@@ -33,7 +34,10 @@ export async function POST(request: Request) {
   // padded) past what a voice session needs, rather than paying for it.
   const history = parsed.data.history && JSON.stringify(parsed.data.history).length <= 120_000 ? parsed.data.history : [];
   const mcpUrl = new URL("/api/mcp", process.env.PUBLIC_BASE_URL ?? request.url);
-  const useClaude = Boolean(process.env.ANTHROPIC_API_KEY) && process.env.ASSISTANT_BRAIN !== "rules";
+  // Claude with an Anthropic key, else Groq with a Groq key, else the rules router.
+  const forcedRules = process.env.ASSISTANT_BRAIN === "rules";
+  const useClaude = Boolean(process.env.ANTHROPIC_API_KEY) && !forcedRules;
+  const useGroq = !useClaude && Boolean(process.env.GROQ_API_KEY) && !forcedRules;
 
   const encoder = new TextEncoder();
   const body = new ReadableStream<Uint8Array>({
@@ -52,6 +56,8 @@ export async function POST(request: Request) {
             emit,
             signal: request.signal,
           });
+        } else if (useGroq) {
+          await runGroq({ session, instructions: INSTRUCTIONS, history: history ?? [], utterance, device, emit, signal: request.signal });
         } else {
           emit({ type: "mode", brain: "rules" });
           const p = plan(utterance, device);

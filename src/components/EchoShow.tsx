@@ -130,7 +130,10 @@ export function EchoShow() {
             buf = buf.slice(i + 2);
             if (!line) continue;
             const e = JSON.parse(line);
-            if (e.type === "mode") setBrain(e.brain === "claude" ? `Claude (${e.model}) · low effort` : "Intent router · no model key");
+            if (e.type === "mode")
+              setBrain(
+                e.brain === "claude" ? `Claude (${e.model}) · low effort` : e.brain === "groq" ? `${e.model?.split("/").pop()} on Groq` : "Intent router · no model key",
+              );
             else if (e.type === "tool_call") {
               lastArgs.current = e.arguments;
               setLog((l) => [...l, { kind: "call", id: e.id, name: e.name, args: e.arguments, at: Date.now() }]);

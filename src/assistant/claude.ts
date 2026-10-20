@@ -10,15 +10,15 @@ const MODEL = process.env.ASSISTANT_MODEL ?? "claude-opus-5-5";
 const MAX_TURNS = 5;
 
 export type AssistantEvent =
-  | { type: "mode"; brain: "claude" | "rules"; model?: string }
+  | { type: "mode"; brain: "claude" | "groq" | "rules"; model?: string }
   | { type: "tool_call"; id: string; name: string; arguments: Record<string, unknown> }
   | { type: "tool_result"; id: string; name: string; result: McpCallResult; uiResourceUri?: string }
   | { type: "say"; text: string }
-  | { type: "history"; messages: Anthropic.Beta.BetaMessageParam[] }
+  | { type: "history"; messages: unknown[] }
   | { type: "error"; message: string }
   | { type: "done" };
 
-const system = (device: Device, instructions: string) => `You are the voice assistant on a screen device in someone's home, in a simulated Alexa+ experience built for a hackathon demo. You help with live music through the Fanroute Live tools.
+export const systemPrompt = (device: Device, instructions: string) => `You are the voice assistant on a screen device in someone's home, in a simulated Alexa+ experience built for a hackathon demo. You help with live music through the Fanroute Live tools.
 
 ${instructions}
 
@@ -56,7 +56,7 @@ export async function runClaude(opts: {
         betas: ["server-side-fallback-2026-07-01"],
         fallbacks: "default",
         output_config: { effort: "low" },
-        system: system(opts.device, opts.instructions),
+        system: systemPrompt(opts.device, opts.instructions),
         tools,
         messages,
       },
