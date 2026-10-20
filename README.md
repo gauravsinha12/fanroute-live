@@ -74,6 +74,7 @@ The view uses large type for a kitchen-distance screen, follows the host's theme
 
 `/api/assistant` connects to `/api/mcp` as an MCP client.
 - **With `ANTHROPIC_API_KEY` set:** Claude (`claude-opus-5-5`, low effort for voice latency) answers using the MCP tools it discovers, through a short tool-use loop.
+- **With `GROQ_API_KEY` (and no Anthropic key):** the same short tool loop runs on Groq (`openai/gpt-oss-120b` by default, `src/assistant/groq.ts`). History and tool data are trimmed to fit the free tier.
 - **Without a key:** a deterministic intent router maps common phrasings onto the same tools, so the demo always works.
 
 ## Run it
@@ -94,6 +95,7 @@ Interop: the live endpoint is also checked with the official MCP Inspector CLI (
 | `TICKETMASTER_API_KEY` | Real concert listings. Without it, listings are demo data, flagged in the data and on the card. |
 | `FANROUTE_URL` | The Fanroute deployment that hosts pledge campaigns |
 | `ANTHROPIC_API_KEY` | Optional Claude brain for the simulator (the public `/api/assistant` is rate-limited per IP) |
+| `GROQ_API_KEY` | Optional Groq brain, used when there is no Anthropic key |
 
 ## Honest notes
 
