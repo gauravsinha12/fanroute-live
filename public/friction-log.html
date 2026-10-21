@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fanroute Live: friction logs</title>
+<style>
+:root{color-scheme:dark}
+body{margin:0;background:#0b0d12;color:#e6e9f2;font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:820px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:30px;margin:0 0 6px} h1 span{color:#f2a33a}
+.sub{color:#9aa3b8;margin:0 0 28px}
+h2{margin:36px 0 10px;font-size:22px} h3{margin:30px 0 8px;font-size:19px;color:#f2c27a}
+code{background:#171b26;border:1px solid #262c3b;border-radius:5px;padding:1px 5px;font-size:.92em}
+a{color:#6fd3c1} li{margin:3px 0}
+</style></head><body><main>
+<h1>Fanroute <span>Live</span>: friction logs</h1>
+<p class="sub">Amazon Developer Hackathon, Alexa+ track. Task attempted, steps, expected vs actual, severity, workaround and suggestion for each issue we hit, plus feature requests. Project: <a href="https://fanroute-live.vercel.app">fanroute-live.vercel.app</a></p>
+<h3>1. Running a public MCP server as an Alexa+ add-on</h3>
+<ul>
+<li><strong>Task:</strong> run Fanroute Live's MCP server inside Alexa+ and test it by voice.</li>
+<li><strong>Steps:</strong></li>
+<ol>
+<li>Read the track resources.</li>
+<li>Found the Alexa+ add-on docs: the Alexa AI CLI (<code>alexa-ai configure</code>, <code>alexa-ai new mcp</code>, <code>alexa-ai deploy</code>), the web simulator, and the onboarding checklist.</li>
+</ol>
+<li><strong>Expected:</strong> a path for a public, no-login MCP server. Concert search needs no account.</li>
+<li><strong>Actual:</strong></li>
+<ul>
+<li>The onboarding checklist requires OAuth 2.1 account linking for every server: authorization code with PKCE (S256), RFC 9728 Protected Resource Metadata, and a 401 for unauthenticated requests. There's no documented option for tools that are public.</li>
+<li>It also requires round trips under 500 ms. Our concert tool calls ListenBrainz and Ticketmaster, which can take longer on a cold call.</li>
+</ul>
+<li><strong>Severity:</strong> High for public or informational add-ons.</li>
+<li><strong>Workaround:</strong></li>
+<ul>
+<li>Built a web "Echo Show" host: an MCP client over Streamable HTTP plus the MCP Apps <code>AppBridge</code>, with browser speech in and out.</li>
+<li>Checked interoperability with the MCP Inspector and with a spec 2025-11-25 client.</li>
+</ul>
+<li><strong>Suggestion:</strong></li>
+<ul>
+<li>An auth-optional add-on type for public tools.</li>
+<li>A documented latency budget for tools that call external APIs, for example progress notifications, or a longer budget paired with a spoken "one moment".</li>
+</ul>
+</ul>
+<h3>2. MCP Apps views blocked from loading their SDK</h3>
+<ul>
+<li><strong>Task:</strong> render the concerts and pledge cards as MCP Apps views inside the host's sandboxed iframe.</li>
+<li><strong>Steps:</strong> registered <code>ui://</code> resources with <code>registerAppResource</code>. The view HTML loaded the ext-apps view SDK from a CDN.</li>
+<li><strong>Expected:</strong> the view SDK loads like any script.</li>
+<li><strong>Actual:</strong></li>
+<ul>
+<li>The host's default sandbox CSP blocks external scripts, so the view never connected.</li>
+<li>The SDK's <code>package.json</code> isn't exported, so build tooling can't locate the browser bundle by path.</li>
+</ul>
+<li><strong>Severity:</strong> Medium.</li>
+<li><strong>Workaround:</strong> a build step (<code>scripts/vendor-app-sdk.mjs</code>) resolves <code>@modelcontextprotocol/ext-apps/app-with-deps</code> via <code>import.meta.resolve</code> and inlines the bundle (~400 KB) into each view.</li>
+<li><strong>Suggestion:</strong></li>
+<ul>
+<li>Ship a small, documented "view runtime" bundle meant to be inlined.</li>
+<li>Export <code>package.json</code>.</li>
+<li>Say in the docs that views must be self-contained under the default CSP.</li>
+</ul>
+</ul>
+<h3>3. Confirming spec 2025-11-25 compatibility</h3>
+<ul>
+<li><strong>Task:</strong> prove the server meets the track's "spec 2025-11-25 or later, Streamable HTTP" rule.</li>
+<li><strong>Steps:</strong> built on the v2 TypeScript SDK (<code>createMcpHandler</code>). Tested with both the v2 client and a v1 client that speaks 2025-11-25.</li>
+<li><strong>Expected:</strong> a compatibility table, or a conformance checker, saying which SDK versions satisfy the requirement.</li>
+<li><strong>Actual:</strong> we had to test the version negotiation ourselves with two clients.</li>
+<li><strong>Severity:</strong> Low.</li>
+<li><strong>Workaround:</strong> <code>scripts/mcp-check.mts</code> runs both clients against production.</li>
+<li><strong>Suggestion:</strong> a hosted conformance check (enter a URL, get pass or fail for the protocol revision, the transport and the tool schemas) linked from the track page.</li>
+</ul>
+<h3>4. Mounting an MCP handler in Next.js 16</h3>
+<ul>
+<li><strong>Task:</strong> serve the MCP endpoint from a Next.js route on Vercel.</li>
+<li><strong>Steps:</strong> added the usual <code>export const runtime</code> and <code>dynamic</code> route config next to the handler.</li>
+<li><strong>Expected:</strong> a normal serverless route.</li>
+<li><strong>Actual:</strong> with <code>cacheComponents</code> enabled, Next.js rejects route-segment config. That isn't obvious when you follow typical MCP server examples.</li>
+<li><strong>Severity:</strong> Low.</li>
+<li><strong>Workaround:</strong> removed the segment config. The stateless handler works without it.</li>
+<li><strong>Suggestion:</strong> a "deploy an MCP server on Vercel / Next.js" example in the MCP SDK docs or the track resources.</li>
+</ul>
+<h2>Feature requests</h2>
+<ul>
+<li><strong>Critical:</strong> auth-optional Alexa+ add-ons for public MCP tools, plus guidance for tools that call slow third-party APIs (see friction log 1). It's the biggest blocker to shipping informational add-ons.</li>
+<li><strong>Important:</strong> device hints in the MCP Apps host context (screen size, voice-only device vs Echo Show). A server could then choose between a spoken summary and a card without guessing.</li>
+<li><strong>Nice-to-have:</strong> a convention for a short "speak this" field in tool results. We return a <code>speech</code> string that's separate from the card data, and a standard name would let any voice host use it.</li>
+</ul>
+</main></body></html>
